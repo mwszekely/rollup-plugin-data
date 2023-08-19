@@ -2,7 +2,7 @@
 import { FilterPattern } from "@rollup/pluginutils";
 import { InputPluginOption } from "rollup";
 type FetchStoreMode = "asset" | "inline" | "url";
-type FetchTypeMode = "json" | "array-buffer" | "text" | "blob";
+type FetchTypeMode = "json" | "array-buffer" | "text" | "blob" | "response";
 interface DataPluginInfo {
     /** The original import path this asset was imported from (e.g. the string in `import data from "datafile:foo.png"`) */
     import: string;

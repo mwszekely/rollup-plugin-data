@@ -24,7 +24,7 @@ function getDefaultAssetPathInfo(fullFilePath, projectRootDir) {
 function getDefaultAssetPath({ fileExtWithDot, fileName }) {
     return `assets/${fileName}${fileExtWithDot}`;
 }
-function mergeThing(target, modifier) {
+function mergeOptions(target, modifier) {
     return {
         location: (target === null || target === void 0 ? void 0 : target.location) || (modifier === null || modifier === void 0 ? void 0 : modifier.location),
         mode: (target === null || target === void 0 ? void 0 : target.mode) || (modifier === null || modifier === void 0 ? void 0 : modifier.mode),
@@ -38,40 +38,41 @@ function dataPlugin({ fileOptions, transformFilePath, fileTypes, useTopLevelAwai
     const filter = createFilter(include, exclude);
     fileTypes || (fileTypes = {});
     // source files
-    fileTypes[".css"] = mergeThing(fileTypes[".css"], { mime: "text/css", mode: "text" });
-    fileTypes[".json"] = mergeThing(fileTypes[".json"], { mime: "text/json", mode: "json" });
-    fileTypes[".html"] = mergeThing(fileTypes[".html"], { mime: "text/html", mode: "text" });
-    fileTypes[".js"] = mergeThing(fileTypes[".js"], { mime: "text/javascript", mode: "text" });
-    fileTypes[".mjs"] = mergeThing(fileTypes[".mjs"], { mime: "text/javascript", mode: "text" });
-    fileTypes[".svg"] = mergeThing(fileTypes[".svg"], { mime: "image/svg+xml", mode: "text" });
-    fileTypes[".csv"] = mergeThing(fileTypes[".csv"], { mime: "text/csv", mode: "text" });
+    fileTypes[".css"] = mergeOptions(fileTypes[".css"], { mime: "text/css", mode: "text" });
+    fileTypes[".json"] = mergeOptions(fileTypes[".json"], { mime: "text/json", mode: "json" });
+    fileTypes[".html"] = mergeOptions(fileTypes[".html"], { mime: "text/html", mode: "text" });
+    fileTypes[".js"] = mergeOptions(fileTypes[".js"], { mime: "text/javascript", mode: "text" });
+    fileTypes[".mjs"] = mergeOptions(fileTypes[".mjs"], { mime: "text/javascript", mode: "text" });
+    fileTypes[".svg"] = mergeOptions(fileTypes[".svg"], { mime: "image/svg+xml", mode: "text" });
+    fileTypes[".csv"] = mergeOptions(fileTypes[".csv"], { mime: "text/csv", mode: "text" });
+    fileTypes[".wasm"] = mergeOptions(fileTypes[".wasm"], { mime: "application/wasm", mode: "response" });
     // raster images
-    fileTypes[".webp"] = mergeThing(fileTypes[".webp"], { mime: "image/webp", mode: "blob" });
-    fileTypes[".gif"] = mergeThing(fileTypes[".gif"], { mime: "image/gif", mode: "blob" });
-    fileTypes[".jpg"] = mergeThing(fileTypes[".jpg"], { mime: "image/jpeg", mode: "blob" });
-    fileTypes[".jpeg"] = mergeThing(fileTypes[".jpeg"], { mime: "image/jpeg", mode: "blob" });
-    fileTypes[".png"] = mergeThing(fileTypes[".png"], { mime: "image/png", mode: "blob" });
-    fileTypes[".ico"] = mergeThing(fileTypes[".ico"], { mime: "image/vnd.microsoft.icon", mode: "blob" });
+    fileTypes[".webp"] = mergeOptions(fileTypes[".webp"], { mime: "image/webp", mode: "blob" });
+    fileTypes[".gif"] = mergeOptions(fileTypes[".gif"], { mime: "image/gif", mode: "blob" });
+    fileTypes[".jpg"] = mergeOptions(fileTypes[".jpg"], { mime: "image/jpeg", mode: "blob" });
+    fileTypes[".jpeg"] = mergeOptions(fileTypes[".jpeg"], { mime: "image/jpeg", mode: "blob" });
+    fileTypes[".png"] = mergeOptions(fileTypes[".png"], { mime: "image/png", mode: "blob" });
+    fileTypes[".ico"] = mergeOptions(fileTypes[".ico"], { mime: "image/vnd.microsoft.icon", mode: "blob" });
     // audio files
-    fileTypes[".mp3"] = mergeThing(fileTypes[".mp3"], { mime: "audio/mpeg", mode: "blob" });
-    fileTypes[".mp4"] = mergeThing(fileTypes[".mp4"], { mime: "audio/mp4", mode: "blob" });
-    fileTypes[".mpeg"] = mergeThing(fileTypes[".mpeg"], { mime: "audio/mpeg", mode: "blob" });
-    fileTypes[".ogg"] = mergeThing(fileTypes[".ogg"], { mime: "application/ogg", mode: "blob" });
-    fileTypes[".webm"] = mergeThing(fileTypes[".webm"], { mime: "audio/webm", mode: "blob" });
+    fileTypes[".mp3"] = mergeOptions(fileTypes[".mp3"], { mime: "audio/mpeg", mode: "blob" });
+    fileTypes[".mp4"] = mergeOptions(fileTypes[".mp4"], { mime: "audio/mp4", mode: "blob" });
+    fileTypes[".mpeg"] = mergeOptions(fileTypes[".mpeg"], { mime: "audio/mpeg", mode: "blob" });
+    fileTypes[".ogg"] = mergeOptions(fileTypes[".ogg"], { mime: "application/ogg", mode: "blob" });
+    fileTypes[".webm"] = mergeOptions(fileTypes[".webm"], { mime: "audio/webm", mode: "blob" });
     // fonts
-    fileTypes[".otf"] = mergeThing(fileTypes[".otf"], { mime: "font/otf", mode: "blob" });
-    fileTypes[".ttf"] = mergeThing(fileTypes[".ttf"], { mime: "font/ttf", mode: "blob" });
-    fileTypes[".woff"] = mergeThing(fileTypes[".woff"], { mime: "font/woff", mode: "blob" });
-    fileTypes[".woff2"] = mergeThing(fileTypes[".woff2"], { mime: "font/woff2", mode: "blob" });
+    fileTypes[".otf"] = mergeOptions(fileTypes[".otf"], { mime: "font/otf", mode: "blob" });
+    fileTypes[".ttf"] = mergeOptions(fileTypes[".ttf"], { mime: "font/ttf", mode: "blob" });
+    fileTypes[".woff"] = mergeOptions(fileTypes[".woff"], { mime: "font/woff", mode: "blob" });
+    fileTypes[".woff2"] = mergeOptions(fileTypes[".woff2"], { mime: "font/woff2", mode: "blob" });
     // document types
-    fileTypes[".txt"] = mergeThing(fileTypes[".txt"], { mime: "text/plain", mode: "text" });
-    fileTypes[".docx"] = mergeThing(fileTypes[".docx"], { mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", mode: "blob" });
-    fileTypes[".xlsx"] = mergeThing(fileTypes[".xlsx"], { mime: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", mode: "blob" });
-    fileTypes[".pptx"] = mergeThing(fileTypes[".pptx"], { mime: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", mode: "blob" });
-    fileTypes[".doc"] = mergeThing(fileTypes[".doc"], { mime: "application/msword", mode: "blob" });
-    fileTypes[".xls"] = mergeThing(fileTypes[".xls"], { mime: "application/vnd.ms-excel", mode: "blob" });
-    fileTypes[".ppt"] = mergeThing(fileTypes[".ppt"], { mime: "application/vnd.ms-powerpoint", mode: "blob" });
-    fileTypes[".pdf"] = mergeThing(fileTypes[".pdf"], { mime: "application/pdf", mode: "blob" });
+    fileTypes[".txt"] = mergeOptions(fileTypes[".txt"], { mime: "text/plain", mode: "text" });
+    fileTypes[".docx"] = mergeOptions(fileTypes[".docx"], { mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", mode: "blob" });
+    fileTypes[".xlsx"] = mergeOptions(fileTypes[".xlsx"], { mime: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", mode: "blob" });
+    fileTypes[".pptx"] = mergeOptions(fileTypes[".pptx"], { mime: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", mode: "blob" });
+    fileTypes[".doc"] = mergeOptions(fileTypes[".doc"], { mime: "application/msword", mode: "blob" });
+    fileTypes[".xls"] = mergeOptions(fileTypes[".xls"], { mime: "application/vnd.ms-excel", mode: "blob" });
+    fileTypes[".ppt"] = mergeOptions(fileTypes[".ppt"], { mime: "application/vnd.ms-powerpoint", mode: "blob" });
+    fileTypes[".pdf"] = mergeOptions(fileTypes[".pdf"], { mime: "application/pdf", mode: "blob" });
     const filePathsToEmitIds = new Map();
     const promisesToWaitFor = new Set();
     let projectDir = process.cwd();
@@ -111,7 +112,7 @@ function dataPlugin({ fileOptions, transformFilePath, fileTypes, useTopLevelAwai
                             outputFilePath = getDefaultAssetPath(o);
                     }
                     let fileReferenceId;
-                    let { mode: defaultMode, location: defaultLocation, mime: defaultMime } = mergeThing((_a = fileTypes === null || fileTypes === void 0 ? void 0 : fileTypes[ext]) !== null && _a !== void 0 ? _a : {}, (fileOptions !== null && fileOptions !== void 0 ? fileOptions : (() => ({})))(inputFilePath));
+                    let { mode: defaultMode, location: defaultLocation, mime: defaultMime } = mergeOptions((_a = fileTypes === null || fileTypes === void 0 ? void 0 : fileTypes[ext]) !== null && _a !== void 0 ? _a : {}, (fileOptions !== null && fileOptions !== void 0 ? fileOptions : (() => ({})))(inputFilePath));
                     const { location: aLocation, mime: aMime, mode: aMode } = (assertions || {});
                     const [qLocation, qMime, qMode] = [searchParams.get("location"), searchParams.get("mime"), searchParams.get("mode")];
                     // Input validation, yay
@@ -215,6 +216,7 @@ export default data;`;
                         // stringify then parse to make sure it's actually JSON, but not parsed from a string on the client at runtime
                         // (lots of unnecessary quotes in the result but a minifier'll clean those right out)
                         return info.rawData ? JSON.parse(JSON.stringify(info.rawData.toString("utf-8"))) : "undefined";
+                    case "response":
                     case "array-buffer":
                     case "blob":
                         // encode the data as base64 in both cases.
