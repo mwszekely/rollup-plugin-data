@@ -1,0 +1,50 @@
+{
+  "name": "rollup-plugin-data",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/es/index.js",
+  "types": "./types/index.d.ts",
+  "type": "commonjs",
+  "exports": {
+    "types": "./types/index.d.ts",
+    "import": "./dist/es/index.js",
+    "default": "./dist/cjs/index.js"
+  },
+  "scripts": {
+    "build": "rollup -c",
+    "ci:coverage": "nyc pnpm test && nyc report --reporter=text-lcov > coverage.lcov",
+    "ci:lint": "pnpm build && pnpm lint",
+    "ci:lint:commits": "commitlint --from=${CIRCLE_BRANCH} --to=${CIRCLE_SHA1}",
+    "ci:test": "pnpm test -- --verbose",
+    "prebuild": "del-cli dist",
+    "prepare": "if [ ! -d 'dist' ]; then pnpm build; fi",
+    "prerelease": "pnpm build",
+    "pretest": "pnpm build",
+    "release": "pnpm --workspace-root plugin:release --pkg $npm_package_name",
+    "test": "ava"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/estree": "^1.0.1",
+    "estree-walker": "^3.0.3",
+    "magic-string": "^0.30.2",
+    "picomatch": "^2.3.1",
+    "@rollup/pluginutils": "^5.0.3",
+    "tslib": "^2.6.1"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^23.0.0",
+    "@rollup/plugin-node-resolve": "^15.0.0",
+    "@rollup/plugin-typescript": "^9.0.1",
+    "@types/node": "^20.4.8",
+    "@types/picomatch": "^2.3.0",
+    "acorn": "^8.8.0",
+    "rollup": "^3.2.3",
+    "serve": "^14.2.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.8.3"
+  }
+}

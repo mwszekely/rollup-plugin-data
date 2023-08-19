@@ -1,0 +1,30 @@
+{  
+"exclude": ["dist", "node_modules", "test/types"],
+  "compilerOptions": {
+    /* Visit https://aka.ms/tsconfig to read more about this file */
+    "downlevelIteration": true,
+                                    /* Specify what module code is generated. */
+    "esModuleInterop": true,                             /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */
+    "forceConsistentCasingInFileNames": true,            /* Ensure that casing is correct in imports. */
+    "declarationDir": "types",
+    "declaration": true,
+    "emitDeclarationOnly": true,
+
+    /* Type Checking */
+    "strict": true,                                      /* Enable all strict type-checking options. */
+    "skipLibCheck": true,                                /* Skip type checking all .d.ts files. */
+    
+
+
+    "allowSyntheticDefaultImports": true,
+    "lib": ["es6"],
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "pretty": true,
+    "sourceMap": true,
+    "target": "es2019"
+  },
+  "include": ["src/**/*"]
+}
