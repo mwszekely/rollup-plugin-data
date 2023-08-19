@@ -132,7 +132,7 @@ function dataPlugin({ fileOptions, transformFilePath, fileTypes, useTopLevelAwai
                     // Back to input validation...
                     if (location != "asset" && location != "inline" && location != "url")
                         throw new Error(`${importer} imported ${id} with an unknown location specified: "${location}"`);
-                    if (mode != "blob" && mode != "array-buffer" && mode != "json" && mode != "text")
+                    if (mode != "blob" && mode != "array-buffer" && mode != "json" && mode != "text" && mode != "response")
                         throw new Error(`${importer} imported ${id} with an unknown mode specified: "${mode}"`);
                     if (location == "asset" || location == "url") {
                         fileReferenceId = this.emitFile({ type: "asset", fileName: outputFilePath });
