@@ -371,7 +371,7 @@ export default data;`
                         // encode the data as base64 in both cases.
                         // the virtual module decodes it into a Blob or ArrayBuffer as appropriate
                         const beforeSplit = rawData.toString("base64url");
-                        const splitSize = 120;
+                        const splitSize = 1024;  // Must be a multiple of 4, this is 1kb
                         let afterSplit: string[] = [];
                         for (let i = 0; i < beforeSplit.length; i += splitSize)
                             afterSplit.push(beforeSplit.substring(i, i + splitSize));
