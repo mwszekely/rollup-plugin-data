@@ -63,7 +63,6 @@ interface DataPluginInfo {
 
 /** This is the virtual helper file whose functions decode base64 and Responses into Blobs and strings and such. */
 const DATA_HELPER_DECODE = "\0DATA_HELPER_ENCODE"
-let _il = 0;
 
 /**
  * The options that are available on a per-file (or per-extension) basis.
@@ -161,6 +160,7 @@ function mergeOptions(target: PerFileOptions | null | undefined, modifier: PerFi
 function capitalize(str: string) { return `${(str[0]).toUpperCase()}${str.substring(1)}` }
 const PLUGIN_NAME = "rollup-plugin-datafile"
 export default function dataPlugin({ fileOptions, transformFilePath, fileTypes, useTopLevelAwait, exclude, include }: Partial<DataPluginOptions> = {}): InputPluginOption {
+    let uniqueIdCounter = 0;
 
     const filter = createFilter(include, exclude);
     fileTypes ||= {};
@@ -278,7 +278,7 @@ export default function dataPlugin({ fileOptions, transformFilePath, fileTypes, 
                         outputFilePath: fileReferenceId ? this.getFileName(fileReferenceId) : outputFilePath,
                         mode,
                         rawData: null, // Wait to load this
-                        uniqueId: _il++,
+                        uniqueId: uniqueIdCounter++,
                         inputFilePath,
                         outputDirectory,
                         fileReferenceId,

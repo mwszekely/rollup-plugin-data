@@ -9,7 +9,6 @@ const DATA_PREFIX = "datafile:";
 const SELFISH_DATA_PREFIX = "\0datafile:";
 /** This is the virtual helper file whose functions decode base64 and Responses into Blobs and strings and such. */
 const DATA_HELPER_DECODE = "\0DATA_HELPER_ENCODE";
-let _il = 0;
 function getDefaultAssetPathInfo(fullFilePath, projectRootDir) {
     const p = fullFilePath;
     const bn = basename(p);
@@ -35,6 +34,7 @@ function mergeOptions(target, modifier) {
 function capitalize(str) { return `${(str[0]).toUpperCase()}${str.substring(1)}`; }
 const PLUGIN_NAME = "rollup-plugin-datafile";
 function dataPlugin({ fileOptions, transformFilePath, fileTypes, useTopLevelAwait, exclude, include } = {}) {
+    let uniqueIdCounter = 0;
     const filter = createFilter(include, exclude);
     fileTypes || (fileTypes = {});
     // source files
@@ -138,7 +138,7 @@ function dataPlugin({ fileOptions, transformFilePath, fileTypes, useTopLevelAwai
                         outputFilePath: fileReferenceId ? this.getFileName(fileReferenceId) : outputFilePath,
                         mode,
                         rawData: null,
-                        uniqueId: _il++,
+                        uniqueId: uniqueIdCounter++,
                         inputFilePath,
                         outputDirectory,
                         fileReferenceId,
