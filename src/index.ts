@@ -1,4 +1,4 @@
-import { FilterPattern, createFilter } from "@rollup/pluginutils";
+import { FilterPattern, createFilter, normalizePath } from "@rollup/pluginutils";
 import { createHash } from "crypto";
 import { readFile } from "fs/promises";
 import MagicString from "magic-string";
@@ -324,12 +324,12 @@ export default function dataPlugin({ fileOptions, transformFilePath, fileTypes, 
 
                     return `
 ${inlineHelpers? `${decodeResponseHelperFile}\n\n` : `import { decodeAsset${m} } from ${JSON.stringify(DATA_HELPER_DECODE)};`}
-const data = ${useTopLevelAwait ? "await " : ""}decodeAsset${m}(fetch(${JSON.stringify(relative(info.outputDirectory, info.outputFilePath!))}));
+const data = ${useTopLevelAwait ? "await " : ""}decodeAsset${m}(fetch(${JSON.stringify(normalizePath(relative(info.outputDirectory, info.outputFilePath!)))}));
 export default data;`
                 }
                 else if (info.location == "url") {
                     return `
-const url = ${JSON.stringify(relative(info.outputDirectory, info.outputFilePath!))};
+const url = ${JSON.stringify(normalizePath(relative(info.outputDirectory, info.outputFilePath!)))};
 export default url;`
                 }
                 else {

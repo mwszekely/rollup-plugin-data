@@ -171,12 +171,12 @@ function dataPlugin({ fileOptions, transformFilePath, fileTypes, useTopLevelAwai
                 if (info.location == "asset") {
                     return `
 ${inlineHelpers ? `${decodeResponseHelperFile}\n\n` : `import { decodeAsset${m} } from ${JSON.stringify(DATA_HELPER_DECODE)};`}
-const data = ${useTopLevelAwait ? "await " : ""}decodeAsset${m}(fetch(${JSON.stringify(path.relative(info.outputDirectory, info.outputFilePath))}));
+const data = ${useTopLevelAwait ? "await " : ""}decodeAsset${m}(fetch(${JSON.stringify(pluginutils.normalizePath(path.relative(info.outputDirectory, info.outputFilePath)))}));
 export default data;`;
                 }
                 else if (info.location == "url") {
                     return `
-const url = ${JSON.stringify(path.relative(info.outputDirectory, info.outputFilePath))};
+const url = ${JSON.stringify(pluginutils.normalizePath(path.relative(info.outputDirectory, info.outputFilePath)))};
 export default url;`;
                 }
                 else {
