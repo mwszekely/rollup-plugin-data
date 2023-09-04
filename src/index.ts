@@ -61,8 +61,6 @@ interface DataPluginInfo {
     mime: string;
 }
 
-/** This is the virtual helper file whose functions decode base64 and Responses into Blobs and strings and such. */
-const DATA_HELPER_DECODE = "\0DATA_HELPER_ENCODE"
 
 /**
  * The options that are available on a per-file (or per-extension) basis.
@@ -115,6 +113,17 @@ export interface DataPluginOptions {
      * Default is the path relative to the importer, which may become weird if ".." paths are used and dumps everything in the output's root folder.
      */
     transformFilePath?(info: TransformFilePathInfo): string;
+
+    /**
+     * The name of the helper module, which becomes visible if multiple, separate chunks import files with this plugin. If you are bundling everything into one chunk, this does not matter in the slightest.
+     * 
+     * `.js` is appended automatically, and due to the way Rollup handles these modules a `_` will be prepended.
+     * 
+     * Pass `null` (not `undefined`) to instead inline everything, even if multiple helpers are imported. This doesn't have a significant increase on bundle size as the helpers are very small, but it's recommended to turn tree-shaking on in this case to omit unused helpers.
+     * 
+     * @default `"decode-asset"`
+     */
+    helperFileName?: string | null;
 }
 
 export interface TransformFilePathInfo {
@@ -159,7 +168,12 @@ function mergeOptions(target: PerFileOptions | null | undefined, modifier: PerFi
 // Doesn't work on non-BMP characters, if that ever comes up
 function capitalize(str: string) { return `${(str[0]).toUpperCase()}${str.substring(1)}` }
 const PLUGIN_NAME = "rollup-plugin-datafile"
-export default function dataPlugin({ fileOptions, transformFilePath, fileTypes, useTopLevelAwait, exclude, include }: Partial<DataPluginOptions> = {}): InputPluginOption {
+export default function dataPlugin({ fileOptions, transformFilePath, fileTypes, useTopLevelAwait, exclude, include, helperFileName }: Partial<DataPluginOptions> = {}): InputPluginOption {
+
+    /** This is the virtual helper file whose functions decode base64 and Responses into Blobs and strings and such. */
+    const DATA_HELPER_DECODE = `\0${helperFileName || "decode-asset"}.js`;
+    const inlineHelpers = (helperFileName === null);
+
     let uniqueIdCounter = 0;
 
     const filter = createFilter(include, exclude);
@@ -309,18 +323,18 @@ export default function dataPlugin({ fileOptions, transformFilePath, fileTypes, 
                 if (info.location == "asset") {
 
                     return `
-import { decodeAsset${m} } from ${JSON.stringify(DATA_HELPER_DECODE)};
+${inlineHelpers? `${decodeResponseHelperFile}\n\n` : `import { decodeAsset${m} } from ${JSON.stringify(DATA_HELPER_DECODE)};`}
 const data = ${useTopLevelAwait ? "await " : ""}decodeAsset${m}(fetch(${JSON.stringify(relative(info.outputDirectory, info.outputFilePath!))}));
 export default data;`
                 }
                 else if (info.location == "url") {
                     return `
-const data = ${JSON.stringify(relative(info.outputDirectory, info.outputFilePath!))};
-export default data;`
+const url = ${JSON.stringify(relative(info.outputDirectory, info.outputFilePath!))};
+export default url;`
                 }
                 else {
                     return `
-import { decodeInline${m} } from ${JSON.stringify(DATA_HELPER_DECODE)};
+                    ${inlineHelpers? `${decodeResponseHelperFile}\n\n` : `import { decodeInline${m} } from ${JSON.stringify(DATA_HELPER_DECODE)};`}
 const data = ${useTopLevelAwait ? "await " : ""}decodeInline${m}(undefined/**@__AWAITING_DATAFILE_BASE64_${info.uniqueId}__**/);
 export default data;`
                 }

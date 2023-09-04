@@ -7,8 +7,6 @@ import { dirname, join, isAbsolute, basename, extname, relative } from 'path';
 const DATA_PREFIX = "datafile:";
 /** When we handle a datafile: id, ensure others don't handle it. The rest of the ID is stripped and replaced with a unique number. */
 const SELFISH_DATA_PREFIX = "\0datafile:";
-/** This is the virtual helper file whose functions decode base64 and Responses into Blobs and strings and such. */
-const DATA_HELPER_DECODE = "\0DATA_HELPER_ENCODE";
 function getDefaultAssetPathInfo(fullFilePath, projectRootDir) {
     const p = fullFilePath;
     const bn = basename(p);
@@ -33,7 +31,10 @@ function mergeOptions(target, modifier) {
 // Doesn't work on non-BMP characters, if that ever comes up
 function capitalize(str) { return `${(str[0]).toUpperCase()}${str.substring(1)}`; }
 const PLUGIN_NAME = "rollup-plugin-datafile";
-function dataPlugin({ fileOptions, transformFilePath, fileTypes, useTopLevelAwait, exclude, include } = {}) {
+function dataPlugin({ fileOptions, transformFilePath, fileTypes, useTopLevelAwait, exclude, include, helperFileName } = {}) {
+    /** This is the virtual helper file whose functions decode base64 and Responses into Blobs and strings and such. */
+    const DATA_HELPER_DECODE = `\0${helperFileName || "decode-asset"}.js`;
+    const inlineHelpers = (helperFileName === null);
     let uniqueIdCounter = 0;
     const filter = createFilter(include, exclude);
     fileTypes || (fileTypes = {});
@@ -165,18 +166,18 @@ function dataPlugin({ fileOptions, transformFilePath, fileTypes, useTopLevelAwai
                     m = "ArrayBuffer";
                 if (info.location == "asset") {
                     return `
-import { decodeAsset${m} } from ${JSON.stringify(DATA_HELPER_DECODE)};
+${inlineHelpers ? `${decodeResponseHelperFile}\n\n` : `import { decodeAsset${m} } from ${JSON.stringify(DATA_HELPER_DECODE)};`}
 const data = ${useTopLevelAwait ? "await " : ""}decodeAsset${m}(fetch(${JSON.stringify(relative(info.outputDirectory, info.outputFilePath))}));
 export default data;`;
                 }
                 else if (info.location == "url") {
                     return `
-const data = ${JSON.stringify(relative(info.outputDirectory, info.outputFilePath))};
-export default data;`;
+const url = ${JSON.stringify(relative(info.outputDirectory, info.outputFilePath))};
+export default url;`;
                 }
                 else {
                     return `
-import { decodeInline${m} } from ${JSON.stringify(DATA_HELPER_DECODE)};
+                    ${inlineHelpers ? `${decodeResponseHelperFile}\n\n` : `import { decodeInline${m} } from ${JSON.stringify(DATA_HELPER_DECODE)};`}
 const data = ${useTopLevelAwait ? "await " : ""}decodeInline${m}(undefined/**@__AWAITING_DATAFILE_BASE64_${info.uniqueId}__**/);
 export default data;`;
                 }

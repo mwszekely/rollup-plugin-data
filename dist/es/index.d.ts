@@ -85,6 +85,16 @@ export interface DataPluginOptions {
      * Default is the path relative to the importer, which may become weird if ".." paths are used and dumps everything in the output's root folder.
      */
     transformFilePath?(info: TransformFilePathInfo): string;
+    /**
+     * The name of the helper module, which becomes visible if multiple, separate chunks import files with this plugin. If you are bundling everything into one chunk, this does not matter in the slightest.
+     *
+     * `.js` is appended automatically, and due to the way Rollup handles these modules a `_` will be prepended.
+     *
+     * Pass `null` (not `undefined`) to instead inline everything, even if multiple helpers are imported. This doesn't have a significant increase on bundle size as the helpers are very small, but it's recommended to turn tree-shaking on in this case to omit unused helpers.
+     *
+     * @default `"decode-asset"`
+     */
+    helperFileName?: string | null;
 }
 export interface TransformFilePathInfo {
     /** The full path from the root of your local disk */
@@ -99,5 +109,5 @@ export interface TransformFilePathInfo {
 }
 export declare function getDefaultAssetPathInfo(fullFilePath: string, projectRootDir: string): TransformFilePathInfo;
 export declare function getDefaultAssetPath({ fileExtWithDot, fileName }: TransformFilePathInfo): string;
-export default function dataPlugin({ fileOptions, transformFilePath, fileTypes, useTopLevelAwait, exclude, include }?: Partial<DataPluginOptions>): InputPluginOption;
+export default function dataPlugin({ fileOptions, transformFilePath, fileTypes, useTopLevelAwait, exclude, include, helperFileName }?: Partial<DataPluginOptions>): InputPluginOption;
 export { dataPlugin };

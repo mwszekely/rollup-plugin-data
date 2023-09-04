@@ -42,16 +42,12 @@ Then call `rollup` either via the [CLI](https://www.rollupjs.org/guide/en/#comma
 With an accompanying file `src/index.js`, the local `image.png` file would now be importable as seen below:
 
 ```js
-import imageFile from "datafile:./image.png?mode=array-buffer";
-//                     ^^^^^^^^^
-// Importing with this plugin will return a promise, as if from import().
-// `mode` controls whether that promise returns a `Blob`, a string, a JSON object, etc.
-// (by default it's "blob")
-//
-// If you don't want to specify this in the source file and would prefer to specify
-// this in the plugin's options, use the `include` and `exclude` options
+import promiseToArrayBuffer from "datafile:./image.png?mode=array-buffer";
+// Prefixing URLs with the string ^^^^^^^^^ will *forcibly* use this plugin
+// on any file, disregarding the `include` and `exclude` options, which can be used
+// if you don't want to specify this in the source file.
 
-const blob = await imageFile;
+const arrayBuffer = await promiseToArrayBuffer;
 ```
 
 You can also import from the root of the project:
@@ -68,13 +64,13 @@ By default, most things imported via `datafile` are put in a flat `assets` direc
 These options can be specified per extension, per file, per URL extension, and per import assertion:
 
 * `location`: Can be one of:
-    * `"inline"`: The asset is directly embedded in the file, using base64 if necessary (which increases the file size not insubstantially).
+    * `"inline"`: The asset is directly embedded in the file, using base64 depending on `mode` (which increases the file size not insubstantially).
     * `"asset"`: The asset is written to the output directory as a separate file (default path is `assets/${filename}`).
-    * `"url"`: Same as `"asset"`, but it's just the final, resolved URL (i.e. after naming conflicts) exported synchronously. With this location `"mode"` has no effect.
+    * `"url"`: The same as `"asset"` but it's just the final, resolved URL (i.e. after naming conflicts) exported synchronously. It's a bit of a special case as `"mode"` has no effect and this is the only time these imports do not return a `Promise`.
 * `mode`: One of `"text"` | `"json"` | `"blob"` | `"array-buffer"` | `"response"`. The import returns a promise to one of these, unless `"location"` is `"url"`, in which case a string is always returned synchronously.
 * `mime`: Only used when `location: "inline"` for base64 (which itself is mostly only useful for `mode: "blob"` anyway).
 
-If you're loading an image to use in an `<img>` (or similar), it's recommended to use [`URL.createObjectURL`](https://developer.mozilla.org/en-US/docs/Web/API/URL/createObjectURL_static) when `mode: "blob"`.
+If you're loading an image to use in an `<img>` (or similar), either use `location=url`, or use [`URL.createObjectURL`](https://developer.mozilla.org/en-US/docs/Web/API/URL/createObjectURL_static) when `mode: "blob"`.
 
 As mentioned, you can specify options via the file's:
 * **extension** (e.g. every `.css` file), 
