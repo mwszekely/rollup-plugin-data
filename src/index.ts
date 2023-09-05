@@ -454,13 +454,6 @@ function atob2(data) {
     // another hit against atob.
     //
     // Instead, we manually implement a variant based on core-js's (MIT) implementation
-function atob2(data) {
-    // Fun fact: Worklets have neither fetch nor atob.
-    // Meaning no way to decode base64...feels like an oversight?
-    // But even besides that issue atob itself returns a string (not an ArrayBuffer) so requires manual copying,
-    // another hit against atob.
-    //
-    // Instead, we manually implement a variant based on core-js's (MIT) implementation
 
     let string = data.trim();
     let position = 0;
