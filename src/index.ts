@@ -437,7 +437,7 @@ export default data;`
 
 export { dataPlugin };
 
-const Base64Regex = /.+:(.+?\/.+?)?(;base64)?,.+/;
+const Base64Regex = /.+:(.+?\/.+?)?(;base64)?,(.+)/;
 
 // TODO: Make this not be a string, that's not awesome.
 // Also TODO a couple of these are basically no-ops, which is lame.
@@ -446,8 +446,10 @@ function decodeInlineBase64(base64) {
 	const regex = ${Base64Regex.toString()};
 	const parsed = regex.exec(base64);
 	let mime;
+    let sextets = base64;
 	if (parsed) {
 		mime = parsed[1];
+        sextets = parsed[3];
 	}
 	const decoded = atob(base64);
 	let ret = new Uint8Array(decoded.length);
