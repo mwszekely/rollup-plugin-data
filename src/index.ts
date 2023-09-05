@@ -438,6 +438,7 @@ export default data;`
 export { dataPlugin };
 
 const Base64Regex = /.+:(.+?\/.+?)?(;base64)?,(.+)/;
+const whitespaces = /[\t\n\f\r ]+/g;
 
 // TODO: Make this not be a string, that's not awesome.
 // Also TODO a couple of these are basically no-ops, which is lame.
@@ -446,7 +447,7 @@ const decodeResponseHelperFile = `
 const itoc = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
 let ctoi = {};
 for (var index = 0; index < 66; index++) ctoi[itoc.charAt(index)] = index;
-const whitespaces = /[\t\n\f\r ]+/g;
+const whitespaces = ${whitespaces.toString()};
 
 function decodeInlineBase64(base64) {
 
