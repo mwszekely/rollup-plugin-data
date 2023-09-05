@@ -1,15 +1,3 @@
-function decodeInlineText(text) {
-	return text;
-}
-
-function decodeInlineJson(json) {
-	return json;
-}
-
-async function decodeAssetBlob(response, backupValue = null) {
-	return await decodeAssetShared(response, r => r.blob(), backupValue);
-}
-
 async function decodeAssetShared(response, action, backup) {
 	if ("then" in response) {
 		return await decodeAssetShared(await response, action, backup);
@@ -21,6 +9,18 @@ async function decodeAssetShared(response, action, backup) {
 		return await backup;
 
 	throw new Error("Critical error: could not load file: HTTP response " + response.status);
+}
+
+function decodeInlineText(text) {
+	return text;
+}
+
+function decodeInlineJson(json) {
+	return json;
+}
+
+async function decodeAssetBlob(response, backupValue = null) {
+	return await decodeAssetShared(response, r => r.blob(), backupValue);
 }
 
 const data$2 = decodeInlineJson({

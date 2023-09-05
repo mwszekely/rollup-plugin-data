@@ -1,16 +1,59 @@
+
+
+const itoc = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+let ctoi = {};
+for (var index = 0; index < 66; index++) ctoi[itoc.charAt(index)] = index;
+var finalEq = /[=]{1,2}$/;
+function atob2(data) {
+    // Fun fact: Worklets have neither fetch nor atob.
+    // Meaning no way to decode base64...feels like an oversight?
+    // But even besides that issue atob itself returns a string (not an ArrayBuffer) so requires manual copying,
+    // another hit against atob.
+    //
+    // Instead, we manually implement a variant based on core-js's (MIT) implementation
+function atob2(data) {
+    // Fun fact: Worklets have neither fetch nor atob.
+    // Meaning no way to decode base64...feels like an oversight?
+    // But even besides that issue atob itself returns a string (not an ArrayBuffer) so requires manual copying,
+    // another hit against atob.
+    //
+    // Instead, we manually implement a variant based on core-js's (MIT) implementation
+
+    let string = data.trim();
+    let position = 0;
+    let bc = 0;
+    let chr, bs;
+    if (string.length % 4 === 0) {
+        string = string.replace(finalEq, '');
+    }
+    if (string.length % 4 === 1) {
+        throw new DOMException('The string is not correctly encoded', 'InvalidCharacterError');
+    }
+    const byteCount = Math.floor(string.length * 6 / 8);
+	const ret = new Uint8Array(byteCount);
+    let outPos = 0;
+    while (chr = string.charAt(position++)) {
+        if (ctoi.hasOwnProperty(chr)) {
+            bs = bc % 4 ? bs * 64 + ctoi[chr] : ctoi[chr];
+            if (bc++ % 4) 
+                ret[outPos++] = (255 & bs >> (-2 * bc & 6));
+        }
+    } 
+    
+    return ret.buffer;
+}
+
 function decodeInlineBase64(base64) {
 	const regex = ${Base64Regex.toString()};
 	const parsed = regex.exec(base64);
 	let mime;
+    let sextets = base64;
 	if (parsed) {
 		mime = parsed[1];
+		sextets = parsed[3];
 	}
-	const decoded = atob(base64);
-	let ret = new Uint8Array(decoded.length);
-	for (let i = 0; i < decoded.length; ++i) {
-		ret[i] = decoded[i];
-	}
-	return { mime, buffer: ret.buffer };
+	const buffer = atob2(sextets);
+	return { mime, buffer };
 }
 
 async function decodeAssetShared(response, action, backup) {
@@ -66,3 +109,4 @@ export async function decodeAssetArrayBuffer(response, backupValue = "") {
 export async function decodeAssetResponse(response) {
 	return await decodeAssetShared(response, r => r, response);
 }
+
