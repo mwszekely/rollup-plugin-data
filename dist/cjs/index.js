@@ -270,7 +270,7 @@ function decodeInlineBase64(base64) {
     // Polyfill it from core-js (MIT)
     // TODO: Figure out how to import this in a non-intrusive way?
     // Because core-js affects chunks in a weird way, and means
-    // worklets import more than they need to.
+    // worklets import more than they need to if we just do \`import "core-js/modules/web.atob.js"\`.
     globalThis.atob ??= function atob(data) {
         let string = data.trim();
         let output = '';
@@ -283,7 +283,7 @@ function decodeInlineBase64(base64) {
         if (string.length % 4 === 1) {
             throw new DOMException('The string is not correctly encoded', 'InvalidCharacterError');
         }
-        while (chr = charAt(string, position++)) {
+        while (chr = string.charAt(string, position++)) {
             if (ctoi.hasOwnProperty(chr)) {
                 bs = bc % 4 ? bs * 64 + ctoi[chr] : ctoi[chr];
                 if (bc++ % 4) 
