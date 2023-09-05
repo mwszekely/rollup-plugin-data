@@ -258,53 +258,49 @@ const itoc = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/='
 let ctoi = {};
 for (var index = 0; index < 66; index++) ctoi[itoc.charAt(index)] = index;
 var finalEq = /[=]{1,2}$/;
+function atob2(data) {
+    // Fun fact: Worklets have neither fetch nor atob.
+    // Meaning no way to decode base64...feels like an oversight?
+    // But even besides that issue atob itself returns a string (not an ArrayBuffer) so requires manual copying,
+    // another hit against atob.
+    //
+    // Instead, we manually implement a variant based on core-js's (MIT) implementation
+
+    let string = data.trim();
+    let position = 0;
+    let bc = 0;
+    let chr, bs;
+    if (string.length % 4 === 0) {
+        string = string.replace(finalEq, '');
+    }
+    if (string.length % 4 === 1) {
+        throw new DOMException('The string is not correctly encoded', 'InvalidCharacterError');
+    }
+    const byteCount = Math.floor(string.length * 6 / 8);
+	const ret = new Uint8Array(byteCount);
+    while (chr = string.charAt(position)) {
+        if (ctoi.hasOwnProperty(chr)) {
+            bs = bc % 4 ? bs * 64 + ctoi[chr] : ctoi[chr];
+            if (bc++ % 4) 
+                ret[position] = (255 & bs >> (-2 * bc & 6));
+        }
+        position += 1;
+    } 
+    
+    return ret.buffer;
+}
 
 function decodeInlineBase64(base64) {
-
-    // Worklets have neither fetch nor atob.
-    // Feels like an oversight?
-    // Polyfill it from core-js (MIT)
-    // TODO: Figure out how to import this in a non-intrusive way?
-    // Because core-js affects chunks in a weird way, and means
-    // worklets import more than they need to if we just do \`import "core-js/modules/web.atob.js"\`.
-    globalThis.atob ??= function atob(data) {
-        let string = data.trim();
-        let output = '';
-        let position = 0;
-        let bc = 0;
-        let chr, bs;
-        if (string.length % 4 === 0) {
-            string = string.replace(finalEq, '');
-        }
-        if (string.length % 4 === 1) {
-            throw new DOMException('The string is not correctly encoded', 'InvalidCharacterError');
-        }
-        while (chr = string.charAt(position++)) {
-            if (ctoi.hasOwnProperty(chr)) {
-                bs = bc % 4 ? bs * 64 + ctoi[chr] : ctoi[chr];
-                if (bc++ % 4) 
-                    output += String.fromCharCode(255 & bs >> (-2 * bc & 6));
-            }
-        } 
-        
-        return output;
-    }
-
-
 	const regex = ${Base64Regex.toString()};
 	const parsed = regex.exec(base64);
 	let mime;
     let sextets = base64;
 	if (parsed) {
 		mime = parsed[1];
-        sextets = parsed[3];
+		sextets = parsed[3];
 	}
-	const decoded = atob(sextets);
-	let ret = new Uint8Array(decoded.length);
-	for (let i = 0; i < decoded.length; ++i) {
-		ret[i] = decoded[i].charCodeAt(0);
-	}
-	return { mime, buffer: ret.buffer };
+	const buffer = atob2(sextets);
+	return { mime, buffer };
 }
 
 async function decodeAssetShared(response, action, backup) {
