@@ -29,6 +29,7 @@ function mergeOptions(target, modifier) {
     return {
         location: (target === null || target === void 0 ? void 0 : target.location) || (modifier === null || modifier === void 0 ? void 0 : modifier.location),
         mode: (target === null || target === void 0 ? void 0 : target.mode) || (modifier === null || modifier === void 0 ? void 0 : modifier.mode),
+        timing: (target === null || target === void 0 ? void 0 : target.timing) || (modifier === null || modifier === void 0 ? void 0 : modifier.timing),
         mime: (target === null || target === void 0 ? void 0 : target.mime) || (modifier === null || modifier === void 0 ? void 0 : modifier.mime)
     };
 }
@@ -117,9 +118,9 @@ function dataPlugin({ fileOptions, transformFilePath, fileTypes, useTopLevelAwai
                             outputFilePath = getDefaultAssetPath(o);
                     }
                     let fileReferenceId;
-                    let { mode: defaultMode, location: defaultLocation, mime: defaultMime } = mergeOptions((_a = fileTypes === null || fileTypes === void 0 ? void 0 : fileTypes[ext]) !== null && _a !== void 0 ? _a : {}, (fileOptions !== null && fileOptions !== void 0 ? fileOptions : (() => ({})))(inputFilePath));
-                    const { location: aLocation, mime: aMime, mode: aMode } = (assertions || {});
-                    const [qLocation, qMime, qMode] = [searchParams.get("location"), searchParams.get("mime"), searchParams.get("mode")];
+                    let { mode: defaultMode, location: defaultLocation, mime: defaultMime, timing: defaultTiming } = mergeOptions((_a = fileTypes === null || fileTypes === void 0 ? void 0 : fileTypes[ext]) !== null && _a !== void 0 ? _a : {}, (fileOptions !== null && fileOptions !== void 0 ? fileOptions : (() => ({})))(inputFilePath));
+                    const { location: aLocation, mime: aMime, mode: aMode, timing: aTiming } = (assertions || {});
+                    const [qLocation, qMime, qMode, qTiming] = [searchParams.get("location"), searchParams.get("mime"), searchParams.get("mode"), searchParams.get("timing")];
                     // Input validation, yay
                     if (aLocation && qLocation && aLocation != qLocation)
                         throw new Error(`${importer} imported ${id}, but specified ${aLocation} via its import assertion.`);
@@ -127,28 +128,32 @@ function dataPlugin({ fileOptions, transformFilePath, fileTypes, useTopLevelAwai
                         throw new Error(`${importer} imported ${id}, but specified ${aMime} via its import assertion.`);
                     if (aMode && qMode && aMode != qMode)
                         throw new Error(`${importer} imported ${id}, but specified ${aMode} via its import assertion.`);
+                    if (aTiming && qTiming && aTiming != qTiming)
+                        throw new Error(`${importer} imported ${id}, but specified ${aTiming} via its import assertion.`);
                     const location = qLocation || aLocation || defaultLocation || "inline";
                     const mode = (qMode || aMode || defaultMode || "blob");
                     const mime = (qMime || aMime || defaultMime || "application/octet-stream");
+                    const timing = (qTiming || aTiming || defaultTiming || "async");
                     // Back to input validation...
                     if (location != "asset" && location != "inline" && location != "url")
                         throw new Error(`${importer} imported ${id} with an unknown location specified: "${location}"`);
                     if (mode != "blob" && mode != "array-buffer" && mode != "json" && mode != "text" && mode != "response")
                         throw new Error(`${importer} imported ${id} with an unknown mode specified: "${mode}"`);
-                    if (location == "asset" || location == "url") {
+                    if (location == "asset") {
                         fileReferenceId = this.emitFile({ type: "asset", fileName: outputFilePath });
                         filePathsToEmitIds.set(outputFilePath, fileReferenceId);
                     }
                     let newInfo = {
                         outputFilePath: fileReferenceId ? this.getFileName(fileReferenceId) : outputFilePath,
-                        mode,
+                        mode: mode,
                         rawData: null,
                         uniqueId: uniqueIdCounter++,
                         inputFilePath,
                         outputDirectory,
                         fileReferenceId,
                         import: id,
-                        location,
+                        location: location,
+                        timing: timing,
                         mime
                     };
                     infoByImport.set(newInfo.import, newInfo);
@@ -168,16 +173,16 @@ function dataPlugin({ fileOptions, transformFilePath, fileTypes, useTopLevelAwai
                 let m = capitalize(info.mode);
                 if (m == "Array-buffer")
                     m = "ArrayBuffer";
-                if (info.location == "asset") {
+                if (info.location == "asset" && info.timing == "sync") {
+                    return `
+const url = ${JSON.stringify(pluginutils.normalizePath(path.relative(info.outputDirectory, info.outputFilePath)))};
+export default url;`;
+                }
+                else if (info.location == "asset") {
                     return `
 ${inlineHelpers ? `${decodeResponseHelperFile}\n\n` : `import { decodeAsset${m} } from ${JSON.stringify(DATA_HELPER_DECODE)};`}
 const data = ${useTopLevelAwait ? "await " : ""}decodeAsset${m}(fetch(${JSON.stringify(pluginutils.normalizePath(path.relative(info.outputDirectory, info.outputFilePath)))}));
 export default data;`;
-                }
-                else if (info.location == "url") {
-                    return `
-const url = ${JSON.stringify(pluginutils.normalizePath(path.relative(info.outputDirectory, info.outputFilePath)))};
-export default url;`;
                 }
                 else {
                     return `
@@ -195,7 +200,7 @@ export default data;`;
             await Promise.all([...infoByImport].map(async ([, info]) => { info.rawData = await promises.readFile(info.inputFilePath); }));
             // Read all the files we've been emitting files for, and wait for all of them to finish in parallel.
             for (const [_id, info] of infoByImport) {
-                if (info.location == "asset" || info.location == "url") {
+                if (info.location == "asset") {
                     this.setAssetSource(info.fileReferenceId, info.rawData);
                 }
             }
@@ -248,33 +253,77 @@ export default data;`;
         }
     };
 }
+const Base64Regex = /.+:(.+?\/.+?)?(;base64)?,.+/;
 // TODO: Make this not be a string, that's not awesome.
 // Also TODO a couple of these are basically no-ops, which is lame.
 const decodeResponseHelperFile = `
-
-export async function decodeInlineBlob(base64)        { return (await fetch(base64)).blob(); }
-export async function decodeInlineArrayBuffer(base64) { return (await fetch(base64)).arrayBuffer(); }
-export async function decodeInlineText(text)          { return (await Promise.resolve(text)); }
-export async function decodeInlineJson(json)          { return (await Promise.resolve(json)); }
-export async function decodeInlineResponse(base64)    { return (await fetch(base64)); }
-
-export async function decodeAssetBlob(response, backupValue = null)      { return await decodeAssetShared(response, r => r.blob(), backupValue); }
-export async function decodeAssetText(response, backupValue = "")        { return await decodeAssetShared(response, r => r.text(), backupValue); }
-export async function decodeAssetJson(response, backupValue = "")        { return await decodeAssetShared(response, r => r.json(), backupValue); }
-export async function decodeAssetArrayBuffer(response, backupValue = "") { return await decodeAssetShared(response, r => r.arrayBuffer(), backupValue); }
-export async function decodeAssetResponse(response)                      { return await decodeAssetShared(response, r => r, response); }
+function decodeInlineBase64(base64) {
+	const regex = ${Base64Regex.toString()};
+	const parsed = regex.exec(base64);
+	let mime;
+	if (parsed) {
+		mime = parsed[1];
+	}
+	const decoded = atob(base64);
+	let ret = new Uint8Array(decoded.length);
+	for (let i = 0; i < decoded.length; ++i) {
+		ret[i] = decoded[i];
+	}
+	return { mime, buffer: ret.buffer };
+}
 
 async function decodeAssetShared(response, action, backup) {
 	if ("then" in response) {
-        return await decodeAssetShared(await response, action, backup);
-    }
-    if (response.ok) {
-        return await action(await response);
-    }
-    if (backup != null)
-        return await backup;
+		return await decodeAssetShared(await response, action, backup);
+	}
+	if (response.ok) {
+		return await action(await response);
+	}
+	if (backup != null)
+		return await backup;
 
-    throw new Error("Critical error: could not load file: HTTP response " + response.status);
+	throw new Error("Critical error: could not load file: HTTP response " + response.status);
+}
+
+export function decodeInlineBlob(base64) {
+	const { mime, buffer } = decodeInlineBase64(base64);
+	return new Blob([buffer], { type: mime })
+}
+
+export function decodeInlineArrayBuffer(base64) {
+	return decodeInlineBase64(base64).buffer;
+}
+
+export function decodeInlineText(text) {
+	return text;
+}
+
+export function decodeInlineJson(json) {
+	return json;
+}
+
+export function decodeInlineResponse(base64) {
+	return fetch(base64);
+}
+
+export async function decodeAssetBlob(response, backupValue = null) {
+	return await decodeAssetShared(response, r => r.blob(), backupValue);
+}
+
+export async function decodeAssetText(response, backupValue = "") {
+	return await decodeAssetShared(response, r => r.text(), backupValue);
+}
+
+export async function decodeAssetJson(response, backupValue = "") {
+	return await decodeAssetShared(response, r => r.json(), backupValue);
+}
+
+export async function decodeAssetArrayBuffer(response, backupValue = "") {
+	return await decodeAssetShared(response, r => r.arrayBuffer(), backupValue);
+}
+
+export async function decodeAssetResponse(response) {
+	return await decodeAssetShared(response, r => r, response);
 }
 
 `;

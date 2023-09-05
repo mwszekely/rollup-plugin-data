@@ -14,10 +14,10 @@ import dataPlugin from "../dist/es/index.js";
         plugins: [
             dataPlugin({
                 fileTypes: {
-                    ".css": { location: "inline" },
-                    ".json": { location: "inline" },
-                    ".txt": { location: "inline" },
-                    ".webp": { location: "inline" },
+                    ".css": { location: "inline", timing: "async" },
+                    ".json": { location: "inline", timing: "async" },
+                    ".txt": { location: "inline", timing: "async" },
+                    ".webp": { location: "inline", timing: "async" },
                 }
             })
         ]

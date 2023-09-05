@@ -1,7 +1,8 @@
 /// <reference types="node" />
 import { FilterPattern } from "@rollup/pluginutils";
 import { InputPluginOption } from "rollup";
-type FetchStoreMode = "asset" | "inline" | "url";
+type FetchLocation = "inline" | "asset";
+type FetchMethod = "sync" | "async";
 type FetchTypeMode = "json" | "array-buffer" | "text" | "blob" | "response";
 interface DataPluginInfo {
     /** The original import path this asset was imported from (e.g. the string in `import data from "datafile:foo.png"`) */
@@ -15,35 +16,55 @@ interface DataPluginInfo {
     rawData: Buffer | null;
     fileReferenceId: string | undefined;
     /**
+     * Controls whether you get your file data synchronously or asynchronously, and by extension whether `fetch` is used to decode off the main thread.
      *
+     * As there is no way to get an external file synchronously, when `location` is `"asset"`, the relative URL of the asset is imported instead of the contents of the file itself:
      *
-     * If inline, you get the value synchronously within the same chunk.
+     * |Location|Timing|Where is the data?|What does the `import` get me?|More|
+     * |--------|------|-|-|-----------|
+     * |`inline`|`sync`|Embedded in the bundle|The file as a `Blob`, `JSON`, etc.|Decoding base64 is done on the main thread, which isn't the most efficient use of resources most of the time. But if you're already in a `Worker` this is often fine.|
+     * |`inline`|`async`|Embedded in the bundle|A promise to the file as a `Blob`, `JSON`, etc.|`fetch` is used to decode the Base64 off the main thread, but you must `await` the promise to get your import at some point.|
+     * |`asset`|`sync`|Emitted as a separate file|The URL to the file|The asset is saved as a separate file. When importing, you're given the relative URL as a `string` to use in `<img>`s and so forth.|
+     * |`asset`|`async`|Emitted as a separate file|A promise to the file as a `Blob`, `JSON`, etc.|The asset is saved as a separate file. When importing, you're given the file itself as a `Blob` or a `JSON` or whatever.|
      *
-     * If asset, you get the value asynchronously via `fetch`
      *
      */
-    location: FetchStoreMode;
+    timing: FetchMethod;
     /**
-     * |Location|Mode|Result|
-     * |----|----|------|
-     * |Inline|`array-buffer`|Exports a decoded base-64 string|
-     * |Inline|`blob`        |Exports a decoded base-64 string|
-     * |Inline|`json`        |Exports JSON object|
-     * |Inline|`text`        |Exports a string|
-     * |Asset |`array-buffer`|Fetches a file, exports the response's array buffer|
-     * |Asset |`blob`        |Fetches a file, exports the response's blob|
-     * |Asset |`json`        |Fetches a file, exports the response's json|
-     * |Asset |`text`        |Fetches a file, exports the response's text|
+     * Controls where the data is stored -- either embedded directly within the bundle's JS (`"inline"`), or emitted as a separate file in the build directory (`"asset"`).
      *
+     * This has an effect on what the `import` statement returns, and whether the decoding timing is sync or async:
+     *
+     * |Location|Timing|Where is the data?|What does the `import` get me?|More|
+     * |--------|------|-|-|-----------|
+     * |`inline`|`sync`|Embedded in the bundle|The file as a `Blob`, `JSON`, etc.|Decoding base64 is done on the main thread, which isn't the most efficient use of resources most of the time. But if you're already in a `Worker` this is often fine.|
+     * |`inline`|`async`|Embedded in the bundle|A promise to the file as a `Blob`, `JSON`, etc.|`fetch` is used to decode the Base64 off the main thread, but you must `await` the promise to get your import at some point.|
+     * |`asset`|`sync`|Emitted as a separate file|The URL to the file|The asset is saved as a separate file. When importing, you're given the relative URL as a `string` to use in `<img>`s and so forth.|
+     * |`asset`|`async`|Emitted as a separate file|A promise to the file as a `Blob`, `JSON`, etc.|The asset is saved as a separate file. When importing, you're given the file itself as a `Blob` or a `JSON` or whatever.|
+     *
+     *
+     *
+     */
+    location: FetchLocation;
+    /**
+     * Controls what is returned from the `import` statement. Can be one of:
+     *
+     * * `array-buffer`: Returns an `ArrayBuffer`
+     * * `blob`: Returns a `Blob`
+     * * `json`: Returns an object/array
+     * * `text`: Returns a `string`
+     * * `response`: Returns the raw `Response` from `fetch`
+     *
+     * Note that this is not used if `location` is `"asset"` *and* `timing` is `"sync"`.
      */
     mode: FetchTypeMode;
-    /** Only used for inline locations/modes */
+    /** Only used when `location` is `"inline"`. */
     mime: string;
 }
 /**
  * The options that are available on a per-file (or per-extension) basis.
  */
-export interface PerFileOptions extends Partial<Pick<DataPluginInfo, "location" | "mode" | "mime">> {
+export interface PerFileOptions extends Partial<Pick<DataPluginInfo, "location" | "mode" | "timing" | "mime">> {
 }
 export interface DataPluginOptions {
     /**
