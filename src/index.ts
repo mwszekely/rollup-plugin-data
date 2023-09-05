@@ -451,7 +451,7 @@ function decodeInlineBase64(base64) {
 		mime = parsed[1];
         sextets = parsed[3];
 	}
-	const decoded = atob(base64);
+	const decoded = atob(sextets);
 	let ret = new Uint8Array(decoded.length);
 	for (let i = 0; i < decoded.length; ++i) {
 		ret[i] = decoded[i];
