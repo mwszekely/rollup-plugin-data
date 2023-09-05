@@ -438,7 +438,6 @@ export default data;`
 export { dataPlugin };
 
 const Base64Regex = /.+:(.+?\/.+?)?(;base64)?,(.+)/;
-const whitespaces = /[\t\n\f\r ]+/g;
 
 // TODO: Make this not be a string, that's not awesome.
 // Also TODO a couple of these are basically no-ops, which is lame.
@@ -447,7 +446,7 @@ const decodeResponseHelperFile = `
 const itoc = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
 let ctoi = {};
 for (var index = 0; index < 66; index++) ctoi[itoc.charAt(index)] = index;
-const whitespaces = ${whitespaces.toString()};
+var finalEq = /[=]{1,2}$/;
 
 function decodeInlineBase64(base64) {
 
@@ -458,16 +457,13 @@ function decodeInlineBase64(base64) {
     // Because core-js affects chunks in a weird way, and means
     // worklets import more than they need to.
     globalThis.atob ??= function atob(data) {
-
-        validateArgumentsLength(arguments.length, 1);
-        if (NO_ARG_RECEIVING_CHECK || WRONG_ARITY) return call($atob, global, data);
-        let string = replace(toString(data), whitespaces, '');
+        let string = data.trim();
         let output = '';
         let position = 0;
         let bc = 0;
         let chr, bs;
         if (string.length % 4 === 0) {
-            string = replace(string, finalEq, '');
+            string = string.replace(finalEq, '');
         }
         if (string.length % 4 === 1) {
             throw new DOMException('The string is not correctly encoded', 'InvalidCharacterError');
