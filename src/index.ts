@@ -283,7 +283,7 @@ export default function dataPlugin({ fileOptions, transformFilePath, fileTypes, 
                     }
                     let fileReferenceId: string | undefined;
 
-                    let { mode: defaultMode, location: defaultLocation, mime: defaultMime, timing: defaultTiming } = mergeOptions(fileTypes?.[ext as never] ?? {}, (fileOptions ?? ((): ReturnType<NonNullable<DataPluginOptions["fileOptions"]>> => ({})))(inputFilePath));
+                    let { mode: defaultMode, location: defaultLocation, mime: defaultMime, timing: defaultTiming } = mergeOptions((fileOptions ?? ((): ReturnType<NonNullable<DataPluginOptions["fileOptions"]>> => ({})))(inputFilePath), fileTypes?.[ext as never] ?? {});
 
                     const { location: aLocation, mime: aMime, mode: aMode, timing: aTiming } = (assertions || {}) as PerFileOptions;
                     const [qLocation, qMime, qMode, qTiming] = [searchParams.get("location") as DataPluginInfo["location"], searchParams.get("mime"), searchParams.get("mode") as DataPluginInfo["mode"], searchParams.get("timing") as DataPluginInfo["timing"]];

@@ -114,7 +114,7 @@ function dataPlugin({ fileOptions, transformFilePath, fileTypes, useTopLevelAwai
                             outputFilePath = getDefaultAssetPath(o);
                     }
                     let fileReferenceId;
-                    let { mode: defaultMode, location: defaultLocation, mime: defaultMime, timing: defaultTiming } = mergeOptions((_a = fileTypes === null || fileTypes === void 0 ? void 0 : fileTypes[ext]) !== null && _a !== void 0 ? _a : {}, (fileOptions !== null && fileOptions !== void 0 ? fileOptions : (() => ({})))(inputFilePath));
+                    let { mode: defaultMode, location: defaultLocation, mime: defaultMime, timing: defaultTiming } = mergeOptions((fileOptions !== null && fileOptions !== void 0 ? fileOptions : (() => ({})))(inputFilePath), (_a = fileTypes === null || fileTypes === void 0 ? void 0 : fileTypes[ext]) !== null && _a !== void 0 ? _a : {});
                     const { location: aLocation, mime: aMime, mode: aMode, timing: aTiming } = (assertions || {});
                     const [qLocation, qMime, qMode, qTiming] = [searchParams.get("location"), searchParams.get("mime"), searchParams.get("mode"), searchParams.get("timing")];
                     // Input validation, yay
