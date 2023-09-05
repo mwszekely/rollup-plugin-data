@@ -306,7 +306,7 @@ function decodeInlineBase64(base64) {
 	const decoded = atob(sextets);
 	let ret = new Uint8Array(decoded.length);
 	for (let i = 0; i < decoded.length; ++i) {
-		ret[i] = decoded[i].charAt(0);
+		ret[i] = decoded[i].charCodeAt(0);
 	}
 	return { mime, buffer: ret.buffer };
 }
