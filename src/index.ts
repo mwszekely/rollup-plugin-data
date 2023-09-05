@@ -468,7 +468,7 @@ function decodeInlineBase64(base64) {
         if (string.length % 4 === 1) {
             throw new DOMException('The string is not correctly encoded', 'InvalidCharacterError');
         }
-        while (chr = string.charAt(string, position++)) {
+        while (chr = string.charAt(position++)) {
             if (ctoi.hasOwnProperty(chr)) {
                 bs = bc % 4 ? bs * 64 + ctoi[chr] : ctoi[chr];
                 if (bc++ % 4) 
