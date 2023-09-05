@@ -253,7 +253,47 @@ const Base64Regex = /.+:(.+?\/.+?)?(;base64)?,(.+)/;
 // TODO: Make this not be a string, that's not awesome.
 // Also TODO a couple of these are basically no-ops, which is lame.
 const decodeResponseHelperFile = `
+
+const itoc = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+let ctoi = {};
+for (var index = 0; index < 66; index++) ctoi[itoc.charAt(index)] = index;
+const whitespaces = /[\t\n\f\r ]+/g;
+
 function decodeInlineBase64(base64) {
+
+    // Worklets have neither fetch nor atob.
+    // Feels like an oversight?
+    // Polyfill it from core-js (MIT)
+    // TODO: Figure out how to import this in a non-intrusive way?
+    // Because core-js affects chunks in a weird way, and means
+    // worklets import more than they need to.
+    globalThis.atob ??= function atob(data) {
+
+        validateArgumentsLength(arguments.length, 1);
+        if (NO_ARG_RECEIVING_CHECK || WRONG_ARITY) return call($atob, global, data);
+        let string = replace(toString(data), whitespaces, '');
+        let output = '';
+        let position = 0;
+        let bc = 0;
+        let chr, bs;
+        if (string.length % 4 === 0) {
+            string = replace(string, finalEq, '');
+        }
+        if (string.length % 4 === 1) {
+            throw new DOMException('The string is not correctly encoded', 'InvalidCharacterError');
+        }
+        while (chr = charAt(string, position++)) {
+            if (ctoi.hasOwnProperty(chr)) {
+                bs = bc % 4 ? bs * 64 + ctoi[chr] : ctoi[chr];
+                if (bc++ % 4) 
+                    output += String.fromCharCode(255 & bs >> (-2 * bc & 6));
+            }
+        } 
+        
+        return output;
+    }
+
+
 	const regex = ${Base64Regex.toString()};
 	const parsed = regex.exec(base64);
 	let mime;
