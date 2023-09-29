@@ -6,3 +6,4 @@ import img from "datafile:test.webp" assert { location: "asset" };
     const a = await Promise.all([txt, json, img]);
     console.log(a);
 })()
+

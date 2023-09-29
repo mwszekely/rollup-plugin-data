@@ -1,10 +1,11 @@
 
-import { RollupOptions, rollup } from "rollup";
+import { RollupOptions, watch } from "rollup";
 import dataPlugin from "../dist/es/index.js";
 
 (async () => {
 
     const opts = {
+        watch: {  },
         input: "./src/index.js",
         output: {
             sourcemap: true,
@@ -23,9 +24,10 @@ import dataPlugin from "../dist/es/index.js";
         ]
     } satisfies RollupOptions;
 
-    let rollupBuild = await rollup(opts);
+    let _rollupBuild = watch(opts);
+    void(_rollupBuild);
 
-    await rollupBuild.write(opts.output! as never).then(output => {
+    /*await rollupBuild.write(opts.output! as never).then(output => {
         console.log(output.output[0].code);
-    })
+    })*/
 })();

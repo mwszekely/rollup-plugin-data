@@ -94,67 +94,67 @@ function dataPlugin({ fileOptions, transformFilePath, fileTypes, useTopLevelAwai
                     url.pathname.startsWith("~") ? join(projectDir, url.pathname.substring(1)) :
                         isAbsolute(url.pathname) ? url.pathname :
                             join(importerDir, url.pathname);
-                if (!infoByImport.has(id)) {
-                    let outputDirectory = ".";
-                    let outputFilePath;
-                    let ext;
-                    {
-                        const p = inputFilePath;
-                        const bn = basename(p);
-                        ext = extname(p);
-                        const filename = bn.substring(0, bn.length - ext.length);
-                        const hasher = createHash("sha256");
-                        const pathRelativeToProject = relative(projectDir, p);
-                        hasher.update(pathRelativeToProject);
-                        const hash = hasher.digest("hex");
-                        const o = { fileExtWithDot: ext, fileName: filename, hashPathRelative: hash, pathRelative: pathRelativeToProject };
-                        if (transformFilePath)
-                            outputFilePath = transformFilePath(o);
-                        else
-                            outputFilePath = getDefaultAssetPath(o);
-                    }
-                    let fileReferenceId;
-                    let { mode: defaultMode, location: defaultLocation, mime: defaultMime, timing: defaultTiming } = mergeOptions((fileOptions !== null && fileOptions !== void 0 ? fileOptions : (() => ({})))(inputFilePath), (_a = fileTypes === null || fileTypes === void 0 ? void 0 : fileTypes[ext]) !== null && _a !== void 0 ? _a : {});
-                    const { location: aLocation, mime: aMime, mode: aMode, timing: aTiming } = (assertions || {});
-                    const [qLocation, qMime, qMode, qTiming] = [searchParams.get("location"), searchParams.get("mime"), searchParams.get("mode"), searchParams.get("timing")];
-                    // Input validation, yay
-                    if (aLocation && qLocation && aLocation != qLocation)
-                        throw new Error(`${importer} imported ${id}, but specified ${aLocation} via its import assertion.`);
-                    if (aMime && qMime && aMime != qMime)
-                        throw new Error(`${importer} imported ${id}, but specified ${aMime} via its import assertion.`);
-                    if (aMode && qMode && aMode != qMode)
-                        throw new Error(`${importer} imported ${id}, but specified ${aMode} via its import assertion.`);
-                    if (aTiming && qTiming && aTiming != qTiming)
-                        throw new Error(`${importer} imported ${id}, but specified ${aTiming} via its import assertion.`);
-                    const location = qLocation || aLocation || defaultLocation || "inline";
-                    const mode = (qMode || aMode || defaultMode || "blob");
-                    const mime = (qMime || aMime || defaultMime || "application/octet-stream");
-                    const timing = (qTiming || aTiming || defaultTiming || "async");
-                    // Back to input validation...
-                    if (location != "asset" && location != "inline" && location != "url")
-                        throw new Error(`${importer} imported ${id} with an unknown location specified: "${location}"`);
-                    if (mode != "blob" && mode != "array-buffer" && mode != "json" && mode != "text" && mode != "response")
-                        throw new Error(`${importer} imported ${id} with an unknown mode specified: "${mode}"`);
-                    if (location == "asset") {
-                        fileReferenceId = this.emitFile({ type: "asset", fileName: outputFilePath });
-                        filePathsToEmitIds.set(outputFilePath, fileReferenceId);
-                    }
-                    let newInfo = {
-                        outputFilePath: fileReferenceId ? this.getFileName(fileReferenceId) : outputFilePath,
-                        mode: mode,
-                        rawData: null,
-                        uniqueId: uniqueIdCounter++,
-                        inputFilePath,
-                        outputDirectory,
-                        fileReferenceId,
-                        import: id,
-                        location: location,
-                        timing: timing,
-                        mime
-                    };
-                    infoByImport.set(newInfo.import, newInfo);
-                    infoByUid.set(newInfo.uniqueId, newInfo);
+                //if (!infoByImport.has(id)) {
+                let outputDirectory = ".";
+                let outputFilePath;
+                let ext;
+                {
+                    const p = inputFilePath;
+                    const bn = basename(p);
+                    ext = extname(p);
+                    const filename = bn.substring(0, bn.length - ext.length);
+                    const hasher = createHash("sha256");
+                    const pathRelativeToProject = relative(projectDir, p);
+                    hasher.update(pathRelativeToProject);
+                    const hash = hasher.digest("hex");
+                    const o = { fileExtWithDot: ext, fileName: filename, hashPathRelative: hash, pathRelative: pathRelativeToProject };
+                    if (transformFilePath)
+                        outputFilePath = transformFilePath(o);
+                    else
+                        outputFilePath = getDefaultAssetPath(o);
                 }
+                let fileReferenceId;
+                let { mode: defaultMode, location: defaultLocation, mime: defaultMime, timing: defaultTiming } = mergeOptions((fileOptions !== null && fileOptions !== void 0 ? fileOptions : (() => ({})))(inputFilePath), (_a = fileTypes === null || fileTypes === void 0 ? void 0 : fileTypes[ext]) !== null && _a !== void 0 ? _a : {});
+                const { location: aLocation, mime: aMime, mode: aMode, timing: aTiming } = (assertions || {});
+                const [qLocation, qMime, qMode, qTiming] = [searchParams.get("location"), searchParams.get("mime"), searchParams.get("mode"), searchParams.get("timing")];
+                // Input validation, yay
+                if (aLocation && qLocation && aLocation != qLocation)
+                    throw new Error(`${importer} imported ${id}, but specified ${aLocation} via its import assertion.`);
+                if (aMime && qMime && aMime != qMime)
+                    throw new Error(`${importer} imported ${id}, but specified ${aMime} via its import assertion.`);
+                if (aMode && qMode && aMode != qMode)
+                    throw new Error(`${importer} imported ${id}, but specified ${aMode} via its import assertion.`);
+                if (aTiming && qTiming && aTiming != qTiming)
+                    throw new Error(`${importer} imported ${id}, but specified ${aTiming} via its import assertion.`);
+                const location = qLocation || aLocation || defaultLocation || "inline";
+                const mode = (qMode || aMode || defaultMode || "blob");
+                const mime = (qMime || aMime || defaultMime || "application/octet-stream");
+                const timing = (qTiming || aTiming || defaultTiming || "async");
+                // Back to input validation...
+                if (location != "asset" && location != "inline")
+                    throw new Error(`${importer} imported ${id} with an unknown location specified: "${location}"`);
+                if (mode != "blob" && mode != "array-buffer" && mode != "json" && mode != "text" && mode != "response")
+                    throw new Error(`${importer} imported ${id} with an unknown mode specified: "${mode}"`);
+                if (location == "asset") {
+                    fileReferenceId = this.emitFile({ type: "asset", fileName: outputFilePath });
+                    filePathsToEmitIds.set(outputFilePath, fileReferenceId);
+                }
+                let newInfo = {
+                    outputFilePath: fileReferenceId ? this.getFileName(fileReferenceId) : outputFilePath,
+                    mode: mode,
+                    rawData: null,
+                    uniqueId: uniqueIdCounter++,
+                    inputFilePath,
+                    outputDirectory,
+                    fileReferenceId,
+                    import: id,
+                    location: location,
+                    timing: timing,
+                    mime
+                };
+                infoByImport.set(newInfo.import, newInfo);
+                infoByUid.set(newInfo.uniqueId, newInfo);
+                //}
                 return {
                     id: `${SELFISH_DATA_PREFIX}${infoByImport.get(id).uniqueId}`
                 };

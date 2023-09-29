@@ -262,7 +262,7 @@ export default function dataPlugin({ fileOptions, transformFilePath, fileTypes, 
                     url.pathname.startsWith("~") ? join(projectDir, url.pathname.substring(1)) :
                         isAbsolute(url.pathname) ? url.pathname :
                             join(importerDir, url.pathname);
-                if (!infoByImport.has(id)) {
+                //if (!infoByImport.has(id)) {
                     let outputDirectory = ".";
                     let outputFilePath: string;
                     let ext: string;
@@ -304,7 +304,7 @@ export default function dataPlugin({ fileOptions, transformFilePath, fileTypes, 
                     const timing = (qTiming || aTiming || defaultTiming || "async");
 
                     // Back to input validation...
-                    if (location != "asset" && location != "inline" && location != "url")
+                    if (location != "asset" && location != "inline")
                         throw new Error(`${importer} imported ${id} with an unknown location specified: "${location}"`);
                     if (mode != "blob" && mode != "array-buffer" && mode != "json" && mode != "text" && mode != "response")
                         throw new Error(`${importer} imported ${id} with an unknown mode specified: "${mode}"`);
@@ -330,7 +330,7 @@ export default function dataPlugin({ fileOptions, transformFilePath, fileTypes, 
 
                     infoByImport.set(newInfo.import, newInfo)
                     infoByUid.set(newInfo.uniqueId, newInfo);
-                }
+                //}
                 return {
                     id: `${SELFISH_DATA_PREFIX}${infoByImport.get(id)!.uniqueId}`
                 }
