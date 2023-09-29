@@ -15,6 +15,7 @@ interface DataPluginInfo {
     outputFilePath: string | null;
     rawData: Buffer | null;
     fileReferenceId: string | undefined;
+    dirty: boolean;
     /**
      * Controls whether you get your file data synchronously or asynchronously, and by extension whether `fetch` is used to decode off the main thread.
      *

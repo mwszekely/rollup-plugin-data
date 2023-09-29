@@ -33,6 +33,10 @@ interface DataPluginInfo {
     // Used in file-related operations
     fileReferenceId: string | undefined;
 
+    // When true, the file needs its contents re-emitted.
+    // (When false, re-emitting causes Rollup to throw an error)
+    dirty: boolean;
+
     /**
      * Controls whether you get your file data synchronously or asynchronously, and by extension whether `fetch` is used to decode off the main thread.
      * 
@@ -325,7 +329,8 @@ export default function dataPlugin({ fileOptions, transformFilePath, fileTypes, 
                         import: id,
                         location: location,
                         timing: timing,
-                        mime
+                        mime,
+                        dirty: true
                     }
 
                     infoByImport.set(newInfo.import, newInfo)
@@ -377,7 +382,8 @@ export default data;`
 
             // Read all the files we've been emitting files for, and wait for all of them to finish in parallel.
             for (const [_id, info] of infoByImport) {
-                if (info.location == "asset") {
+                if (info.location == "asset" && info.dirty) {
+                    info.dirty = false;
                     this.setAssetSource(info.fileReferenceId!, info.rawData!);
                 }
             }

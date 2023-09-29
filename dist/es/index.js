@@ -150,7 +150,8 @@ function dataPlugin({ fileOptions, transformFilePath, fileTypes, useTopLevelAwai
                     import: id,
                     location: location,
                     timing: timing,
-                    mime
+                    mime,
+                    dirty: true
                 };
                 infoByImport.set(newInfo.import, newInfo);
                 infoByUid.set(newInfo.uniqueId, newInfo);
@@ -196,7 +197,8 @@ export default data;`;
             await Promise.all([...infoByImport].map(async ([, info]) => { info.rawData = await readFile(info.inputFilePath); }));
             // Read all the files we've been emitting files for, and wait for all of them to finish in parallel.
             for (const [_id, info] of infoByImport) {
-                if (info.location == "asset") {
+                if (info.location == "asset" && info.dirty) {
+                    info.dirty = false;
                     this.setAssetSource(info.fileReferenceId, info.rawData);
                 }
             }
